@@ -1,0 +1,165 @@
+/* Custom Stylesheet */
+/**
+ * Use this file to override Materialize files so you can update
+ * the core Materialize files in the future
+ *
+ * Made By MaterializeCSS.com
+ */
+
+nav ul a,
+nav .brand-logo {
+    color: #444;
+}
+
+#logo-container {
+    padding-left: 5rem;
+}
+
+p {
+    line-height: 2rem;
+}
+
+.button-collapse {
+    color: #26a69a;
+}
+
+.parallax-container {
+    min-height: 380px;
+    line-height: 0;
+    height: auto;
+    color: rgba(255, 255, 255, .9);
+}
+
+.parallax-container .section {
+    width: 100%;
+}
+
+@media only screen and (max-width: 992px) {
+    .parallax-container .section {
+        position: absolute;
+        top: 40%;
+    }
+
+    #index-banner .section {
+        top: 10%;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    #index-banner .section {
+        top: 0;
+    }
+}
+
+.icon-block {
+    padding: 0 15px;
+}
+
+.icon-block .material-icons {
+    font-size: inherit;
+}
+
+footer.page-footer {
+    margin: 0;
+}
+
+#disclaimer .body {
+    font-size: 9px;
+}
+
+#search_box label {
+    color: #26a69a;
+}
+
+#search {
+    border-color: #26a69a;
+}
+
+#region {
+    width: 75px;
+    background-color: #00a094;
+    border: 0;
+}
+
+#see_stats, #see_game {
+    padding: 0;
+    background-color: #26a69a;
+    border: none;
+}
+
+.banned_box {
+    background-clip: border-box;
+    background-color: rgb(51, 51, 51);
+    background-origin: padding-box;
+    background-size: auto;
+    box-sizing: border-box;
+    color: rgb(255, 255, 255);
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    height: 36px;
+    line-height: 28px;
+    padding: 4px;
+}
+
+.wins {
+    color: rgb(0, 102, 0);
+}
+
+.losses {
+    color: rgb(204, 0, 0);
+}
+
+.lp {
+    font-weight: bold;
+}
+
+.item-box {
+    width: 130px;
+    float: left;
+}
+
+.item-box-item {
+    height: 40px;
+    width: 40px;
+    padding: 2px;
+}
+
+.champion-tooltip {
+    width: 75px;
+}
+
+.summoner-spells {
+    width: 30px;
+}
+
+.game-participant {
+    font-size: 120%;
+    width:200px;
+}
+
+#table-title {
+    padding-left: 50px;
+}
+
+.match-win {
+    background-color: rgba(56, 142, 60, 0.5) !important;
+}
+
+.match-loss {
+    background-color: rgba(198, 40, 40, 0.5) !important;
+}
+
+#loading {
+    width: 500px;
+    height: 500px;
+    opacity: 1;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -250px;
+    margin-top: -357px;
+    z-index:99;
+    text-align: center;
+    cursor: wait;
+}

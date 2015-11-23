@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if current_game %}
+<div class="parallax-container">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br><br>
+
+            <h1 class="header center light text-darken-2">{{summoner['name']}}</h1>
+
+            <div class="row center">
+                {% for game in summoner['streak_info'] %}
+                <i class="fa fa-{{game['icon']}} fa-2x" style="color:{{game['color']}};"></i>
+                {% endfor %}
+            </div>
+            <div class="row center">
+                <form action="{{url_for('summoner')}}" method="post">
+                    <input type="hidden" value="{{region}}" name="region" id="region">
+                    <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                    <input value="See Stats" type="submit" class="btn-large waves-effect waves-light teal lighten-1"
+                           id="see_stats">
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
+</div>
+<p>Started at: {{current_game['gameStartTime']}} (UTC)</p>
+{% for team in current_game['teams'] %}
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Champion</th>
+        <th>Current Standing</th>
+        <th>Ranked Wins</th>
+        <th>Badges</th>
+        <th>Champ Kills/Game</th>
+        <th>Turret Kills/Game</th>
+        <th>Minion Kills/Game</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for participant in current_game['teams'][team] %}
+    <tr>
+        <td class="game-participant"><img src="{{ participant['profileIconImg'] }}" alt="Profile icon img" height="25"
+                                          width="25">
+            {{ participant['summonerName'] }}
+        </td>
+        <td>
+            <img src="{{ participant['img'] }}" alt="Champ img" height="40" width="40">
+
+            <div>
+                <img style="display:inline-block;" src="{{ participant['spell1Img'] }}" alt="Spell 1 img" height="20"
+                     width="20">
+                <img style="display:inline-block;" src="{{ participant['spell2Img'] }}" alt="Spell 1 img" height="20"
+                     width="20">
+            </div>
+        </td>
+        <td><img src="{{ url_for('static', filename='img/tier_icons/') }}{{ participant['stats']['rankImgPath'] }}"
+                 alt="Rank icon img" height="30" width="30">
+            {{ participant['stats']['rank'] }}
+            <span class="lp">({{participant['stats']['lp'] }} LP)</span>
+        </td>
+        <td><span class="wins">{{ participant['stats']['wins'] }}</span>
+            /
+            <span class="losses"> {{ participant['stats']['losses'] }}</span>
+            {% if (participant['stats']['wins'] / participant['stats']['total_games']) < 0.50 %}
+                <span class="red-text text-darken-3">
+                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+                </span>
+            {% elif (participant['stats']['wins'] / participant['stats']['total_games']) < 0.54 %}
+                <span class="lime-text ">
+                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+                </span>
+            {% else %}
+            <span class="green-text text-darken-1">
+                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+                </span>
+            {% endif %}
+        </td>
+        <td>
+            {% for badge in participant['badges'] %}
+            <img src="{{ url_for('static', filename='img/badges/') }}{{ badge['badgePath'] }}"
+                 title="{{ badge['title'] }}"
+                 height="20" width="20">
+            {% endfor %}
+        </td>
+        <td>
+            <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/score.png"></div>
+            <div>{{ (participant['stats']['champ_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            </div>
+        </td>
+        <td>
+            <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/score.png"></div>
+            <div>{{ (participant['stats']['turret_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            </div>
+        </td>
+        <td>
+            <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/minion.png"></div>
+            <div>{{ (participant['stats']['minion_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="banned_box">
+    Banned Champions:
+    {% for champ in current_game['bannedChampions'] %}
+    {% if champ['teamId'] == current_game['teams'][team][0]['teamId'] %}
+    <img src="{{ champ['img'] }}" alt="Champ img" height="25" width="25">
+    {% endif %}
+    {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+<div class="parallax-container">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br><br>
+
+            <h1 class="header center light text-darken-2">{{summoner['name']}}</h1>
+
+            <div class="row center">
+                <h5 class="header col s12 light">Summoner currently not in game. Maybe you meant a different summoner?
+                    Or would you like to look at stats for {{ summoner['name'] }}?</h5>
+            </div>
+            <div class="row center">
+                <form action="{{url_for('summoner')}}" method="post">
+                    <input type="hidden" value="{{region}}" name="region" id="region">
+                    <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                    <input value="See Stats" type="submit" class="btn-large waves-effect waves-light teal lighten-1"
+                           id="see_stats">
+                </form>
+                <br>
+                <a href="index" id="return" class="btn-large waves-effect waves-light teal lighten-1">Search for a new
+                    Summoner</a>
+            </div>
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="CounterTilt">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"/>
+    <title>CounterTilt</title>
+
+    <!-- CSS  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="/static/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href="/static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <link href='https://fonts.googleapis.com/css?family=Orbitron:400,500,700,900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <script type="text/javascript">
+        function preloader() {
+            document.getElementById("loading").style.display = "none";
+        }
+        window.onload = preloader;
+    </script>
+</head>
+<body ng-controller="CounterTiltController">
+<div id="loading">
+    <img src="{{ url_for('static', filename='img/lissandra.gif') }}">
+</div>
+<div id="content">
+    <nav class="white" role="navigation">
+        <div class="nav-wrapper">
+            <a id="logo-container" href="/index" class="brand-logo">CounterTilt</a>
+        </div>
+    </nav>
+
+    {% block content %} {% endblock %}
+
+    <footer class="page-footer grey darken-4">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <h5 class="white-text">Developer Bio</h5>
+
+                    <p class="grey-text text-lighten-4">I'm a college student currently studying CS at UIUC.
+                        I like good music, good code, and good people, and ideally my life will rotate around all three
+                        of
+                        those things in the future.</p>
+                </div>
+                <div id="disclaimer" class="col l6 s12">
+                    <h5 class="header white-text">Disclaimer</h5>
+
+                    <p class="body grey-text text-lighten-4">CounterTilt isn't endorsed by Riot Games and doesn't
+                        reflect
+                        the views or opinions of Riot Games or anyone officially involved in producing or managing
+                        League of
+                        Legends. League of Legends and Riot Games are trademarks or registered trademarks of Riot Games,
+                        Inc. League of Legends © Riot Games, Inc.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                Made by <a class="brown-text text-lighten-3" href="http://materializecss.com">Materialize</a>
+                <br>
+                Icons made by <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works">Icon Works</a>
+                from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>
+                <br>
+                is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC
+                BY 3.0</a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+
+<!--  Scripts-->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename = 'js/materialize.js') }}"></script>
+<script src="{{ url_for('static', filename = 'js/init.js') }}"></script>
+<script type="text/javascript">
+    function loading() {
+        $("#loading").show();
+        //$("#content").hide();
+        $("#content").animate({
+                opacity: .3
+        });
+        $("#content").style.zIndex = "1";
+        $("#content").style.cursor = "wait";
+    }
+</script>
+</body>
+</html>

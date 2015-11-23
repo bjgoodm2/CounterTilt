@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if summoner %}
+<div class="parallax-container">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br><br>
+
+            <h1 class="header center light text-darken-2">{{summoner['name']}}</h1>
+
+            <div class="row center">
+                {% for game in match_list['streak_info'] %}
+                <i class="fa fa-{{game['icon']}} fa-2x" style="color:{{game['color']}};"></i>
+                {% endfor %}
+            </div>
+            <div class="row center">
+                <form action="{{url_for('game')}}" method="post">
+                    <input type="hidden" value="{{region}}" name="region" id="region">
+                    <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                    <input value="See Current Game" type="submit"
+                           class="btn-large waves-effect waves-light teal lighten-1" id="see_game">
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
+</div>
+<h5 id="table-title">Recent Match History</h5>
+<div class="col s9">
+    <table class="striped bordered">
+        <tbody>
+        {% for match in match_list['matches'] %}
+        <tr class=" {% if match['info']['winner'] %}
+                match-win
+                {% else %}
+                match-loss
+                {% endif %}">
+            <td class="champion-tooltip">
+                <img src="{{match['img']}}" height="60" width="60">
+            </td>
+            <td class="summoner-spells">
+                <img src="{{match['info']['ssImg1']}}" height="30" width="30">
+                <img src="{{match['info']['ssImg2']}}" height="30 width=30">
+            </td>
+            <td class="game-result">
+                {% if match['info']['winner'] %}
+                <div class="teal-text text-darken-1">Win</div>
+                {% else %}
+                <div class="red-text text-darken-3">Loss</div>
+                {% endif %}
+            <span>
+                {{ match['champ_info']['name'] }}, {{ match['champ_info']['title']}}
+            </span>
+            </td>
+            <td class="kda">
+                KDA: {{ match['info']['kills'] }}/{{ match['info']['deaths']}}/{{match['info']['assists']}}
+                {% if match['info']['firstBlood'] %}
+                <img src="{{ url_for('static', filename='img/badges/blood.png')}}" title="drew First Blood"
+                     height="20" width="20">
+                {% endif %}
+            </td>
+            <td class="item-box">
+                <div class="row">
+                    {% for item in match['info']['items'] %}
+                    <div class="col s4">
+                        <img class="item-box-item" src="{{ item }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </td>
+            <td class="match-duration">
+                Game Duration:
+                {{ match['info']['duration'] }}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="col s3">
+    <!--Add List of F2P Champs here-->
+</div>
+{% else %}
+<div class="parallax-container">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br><br>
+
+            <h1 class="header center light text-darken-2">Summoner Not Found</h1>
+
+            <div class="row center">
+                <h5 class="header col s12 light">That summoner does not exist. Check to make sure you entered
+                    region/name correctly.</h5>
+            </div>
+            <div class="row center">
+                <a href="index" id="return" class="btn-large waves-effect waves-light teal lighten-1">Go Back</a>
+            </div>
+            <br><br>
+
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
+</div>
+{% endif %}
+{% endblock %}

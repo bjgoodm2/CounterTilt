@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="index-banner" class="parallax-container">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br><br>
+
+            <h1 class="header center light text-darken-2">Improve your Play</h1>
+
+            <div class="row center">
+                <h5 class="header col s12 light">Check past match history and immediately see where you can improve</h5>
+            </div>
+            <div class="row center">
+                <a href="#parallax-search" id="search-now-button" class="btn-large waves-effect waves-light teal lighten-1">Search
+                    Now</a>
+            </div>
+            <br><br>
+
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
+</div>
+
+
+<div class="container">
+    <div class="section">
+
+        <!--   Icon Section   -->
+        <div class="row">
+            <div class="col s12 m4">
+                <div class="icon-block">
+                    <h2 class="center brown-text"><i class="material-icons">list</i></h2>
+                    <h5 class="center">Check out stats</h5>
+
+                    <p class="light">Look at a summoner's past match history. Check out your (or your opponent's!) KDA,
+                        CS, and other useful information.</p>
+                </div>
+            </div>
+
+            <div class="col s12 m4">
+                <div class="icon-block">
+                    <h2 class="center brown-text"><i class="material-icons">hourglass_empty</i></h2>
+                    <h5 class="center">Quick and simple</h5>
+
+                    <p class="light">Just search for your summoner name, and we'll do the rest. Access meaningful data,
+                        analyze your allies and your enemies.</p>
+                </div>
+            </div>
+
+            <div class="col s12 m4">
+                <div class="icon-block">
+                    <h2 class="center brown-text"><i class="material-icons">trending_up</i></h2>
+                    <h5 class="center">Keep up</h5>
+
+                    <p class="light">Keep checking back for more info -- take advantage of your opponent's weakest areas
+                        while learning from your past games.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="parallax-search" class="parallax-container valign-wrapper">
+    <div class="section no-pad-bot">
+        <div class="container">
+            <div class="row center">
+                <form action="{{url_for('game')}}" method="post" onsubmit="setTimeout(function(){ loading(); }, 3000);">
+                    <div class="input-field col s12">
+                        <div id="search_box" class="col s9">
+                            <input id="search" name="search" type="text" required>
+                            <label for="search"><i class="material-icons">search</i></label>
+                        </div>
+                        <select id="region" name="region" class="browser-default col s3">
+                            <option value="na">NA</option>
+                            <option value="euw">EUW</option>
+                            <option value="eune">EUNE</option>
+                            <option value="kr">KR</option>
+                            <option value="ru">RU</option>
+                            <option value="tr">TR</option>
+                            <option value="br">BR</option>
+                            <option value="lan">LAN</option>
+                            <option value="las">LAS</option>
+                            <option value="oce">OCE</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="parallax"><img src="/static/img/cho_noc.jpg" alt="Cho'gath_Nocturne"></div>
+</div>
+{% endblock %}
