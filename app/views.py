@@ -1,6 +1,6 @@
 from app import app
 import requests
-from flask import Flask, render_template, redirect, url_for, request, g
+from flask import Flask, render_template, redirect, url_for, request, g, send_from_directory
 import countertilt as ct
 from riotwatcher import platforms, LoLException, RiotWatcher
 
@@ -26,3 +26,7 @@ def summoner():
         return ct.summoner_view_handler(request)
     else:
         return render_template('error.html')
+
+@app.route('/riot.txt')
+def static_from_root():
+    return send_from_directory(app.static_folder, request.path[1:])
