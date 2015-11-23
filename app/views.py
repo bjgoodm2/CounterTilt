@@ -1,11 +1,10 @@
 from app import app
 import requests
-from flask import render_template, redirect, url_for, request, g
+from flask import Flask, render_template, redirect, url_for, request, g
 import countertilt as ct
 from riotwatcher import platforms, LoLException, RiotWatcher
 
 rw = RiotWatcher(ct.API_KEY)
-
 
 @app.route('/')
 @app.route('/index')
