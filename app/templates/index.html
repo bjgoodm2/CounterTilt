@@ -67,11 +67,12 @@
     <div class="section no-pad-bot">
         <div class="container">
             <div class="row center">
-                <form action="{{url_for('game')}}" method="post" onsubmit="setTimeout(function(){ loading(); }, 3000);">
+                <form action="{{url_for('search')}}" method="post" onsubmit="setTimeout(function(){ loading(); }, 3000);">
+                    <input type="hidden" value="false" name="stats">
                     <div class="input-field col s12">
                         <div id="search_box" class="col s9">
-                            <input id="search" name="search" type="text" required>
-                            <label for="search"><i class="material-icons">search</i></label>
+                            <input id="summonerName" name="summonerName" type="text" required>
+                            <label for="summonerName"><i class="material-icons">search</i></label>
                         </div>
                         <select id="region" name="region" class="browser-default col s3">
                             <option value="na">NA</option>

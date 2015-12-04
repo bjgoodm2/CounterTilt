@@ -10,6 +10,7 @@
     <link href="/static/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
     <link href="/static/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
     <link href='https://fonts.googleapis.com/css?family=Orbitron:400,500,700,900' rel='stylesheet' type='text/css'>
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <script type="text/javascript">
         function preloader() {
@@ -56,12 +57,12 @@
         </div>
         <div class="footer-copyright">
             <div class="container">
-                Made by <a class="brown-text text-lighten-3" href="http://materializecss.com">Materialize</a>
-                <br>
-                Icons made by <a href="http://www.flaticon.com/authors/icon-works" title="Icon Works">Icon Works</a>
-                from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>
-                <br>
-                is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC
+                Made by <a class="brown-text text-lighten-3" href="http://materializecss.com">Materialize</a>,
+                Icons made by
+                <a class="brown-text text-lighten-3" href="http://www.flaticon.com/authors/icon-works" title="Icon Works">Icon Works</a>
+                from <a class="brown-text text-lighten-3"href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>
+                is licensed by
+                <a class="brown-text text-lighten-3" href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC
                 BY 3.0</a>
             </div>
         </div>
@@ -80,11 +81,18 @@
         $("#loading").show();
         //$("#content").hide();
         $("#content").animate({
-                opacity: .3
+            opacity: .3
         });
         $("#content").style.zIndex = "1";
         $("#content").style.cursor = "wait";
     }
+</script>
+<script>
+$(document).ready(function(){
+    $('.collapsible').collapsible({
+      accordion : false // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+    });
+  });
 </script>
 </body>
 </html>

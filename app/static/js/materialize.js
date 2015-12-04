@@ -301,7 +301,7 @@ else {
 
       var $this = $(this);
 
-      var $panel_headers = $(this).find('> li > .collapsible-header');
+      var $panel_headers = $(this).find('> tbody > .collapsible-header');
 
       var collapsible_type = $this.data("collapsible");
 
@@ -316,7 +316,8 @@ else {
 
       // Accordion Open
       function accordionOpen(object) {
-        $panel_headers = $this.find('> li > .collapsible-header');
+        $panel_headers = $this.find('> tbody > .collapsible-header');
+           console.log($panel_headers);
         if (object.hasClass('active')) {
             object.parent().addClass('active');
         }
@@ -387,7 +388,7 @@ else {
 
       if (options.accordion || collapsible_type === "accordion" || collapsible_type === undefined) { // Handle Accordion
         // Add click handler to only direct collapsible header children
-        $panel_headers = $this.find('> li > .collapsible-header');
+        $panel_headers = $this.find('> tbody > .collapsible-header');
         $panel_headers.on('click.collapse', function (e) {
           var element = $(e.target);
 

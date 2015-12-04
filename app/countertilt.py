@@ -1,11 +1,9 @@
-import shutil
-import requests
-import riotwatcher
-import datetime
+from decimal import *
+import requests, riotwatcher, datetime, operator
 from flask import render_template
 from riotwatcher import platforms, LoLException, RiotWatcher
 
-API_KEY = '87258093-0098-49d5-8e90-5f0bcad77964'
+API_KEY = 'lol' # Put your API Key here
 CURR_SEASON = 'SEASON2015'
 
 key = API_KEY
@@ -39,7 +37,7 @@ def get_champion_image_url(champ_id):
 def get_ss_image_url(ss_id):
     ss = rw.static_get_summoner_spell(ss_id, spell_data='image')
     latest_version = rw.static_get_versions()[0]
-    return 'http://ddragon.leagueoflegends.com/cdn/5.22.3/img/spell/{spell_key}'.format(
+    return 'http://ddragon.leagueoflegends.com/cdn/{version}/img/spell/{spell_key}'.format(
         version=latest_version,
         spell_key=ss['image']['full'])
 
@@ -47,24 +45,31 @@ def get_ss_image_url(ss_id):
 # fetches the image url associated with the given profile icon id
 def get_profile_image_url(profile_icon_id):
     latest_version = rw.static_get_versions()[0]
-    return 'http://ddragon.leagueoflegends.com/cdn/5.22.3/img/profileicon/{profile_icon_key}.png'.format(
+    return 'http://ddragon.leagueoflegends.com/cdn/{version}/img/profileicon/{profile_icon_key}.png'.format(
         version=latest_version,
         profile_icon_key=profile_icon_id)
 
 
 # fetches the image url associated with the given item id
 def get_item_image_url(item_id):
+    print('getting item url and name')
     latest_version = rw.static_get_versions()[0]
+    dict = {}
     if item_id == 0:
-        return 'http://www.probuilds.net/resources/img/items/64/EmptyIcon.png'
+        dict['url'] = 'http://solomid-resources.s3-website-us-east-1.amazonaws.com/probuilds/img/items/28/EmptyIcon.png'
+        dict['name'] = '-'
     else:
-        return 'http://ddragon.leagueoflegends.com/cdn/5.22.3/img/item/{item_key}.png '.format(
+        dict['url'] = 'http://ddragon.leagueoflegends.com/cdn/{version}/img/item/{item_key}.png '.format(
             version=latest_version,
             item_key=item_id)
+        item = rw.static_get_item(item_id)
+        dict['name'] = item['name']
+    print('got item url and name')
+    return dict
 
 
-# returns a dictionary with season stats
-def get_ranked_stats(summoner_id, region):
+# returns a dictionary with season stats, as well as info about the champion being played in the current game
+def get_ranked_stats(summoner_id, region, current_champ_id):
     stats = rw.get_stat_summary(summoner_id, region=region)
     dict = {}
     # grab stats from ranked solo queue
@@ -83,15 +88,78 @@ def get_ranked_stats(summoner_id, region):
     dict['streak'] = league_summary['entries'][0]['isHotStreak']
     dict['wins'] = stat_summary['wins']
     dict['losses'] = stat_summary['losses']
-    dict['total_games'] = dict['wins'] + dict['losses']
-    dict['champ_kills'] = stat_summary['aggregatedStats']['totalChampionKills']
-    dict['turret_kills'] = stat_summary['aggregatedStats']['totalTurretsKilled']
-    dict['minion_kills'] = stat_summary['aggregatedStats']['totalMinionKills'] + stat_summary['aggregatedStats'][
+    dict['totalGames'] = dict['wins'] + dict['losses']
+    dict['champKills'] = stat_summary['aggregatedStats']['totalChampionKills']
+    dict['turretKills'] = stat_summary['aggregatedStats']['totalTurretsKilled']
+    dict['minionKills'] = stat_summary['aggregatedStats']['totalMinionKills'] + stat_summary['aggregatedStats'][
         'totalNeutralMinionsKilled']
+    dict['mostPlayedChamps'] = get_most_played_champs(summoner_id, region)
+    dict['currentChampInfo'] = get_specific_champ_stats(summoner_id, region, current_champ_id)
     return dict
 
 
-# returns a dictionary of any applicable medals
+# returns a dictionary of a summoner's most played champs and information about those champions
+def get_most_played_champs(summoner_id, region):
+    champions = []
+    stats = rw.get_ranked_stats(summoner_id, region=region)
+    for champion in stats['champions']:
+        champ_stats = {}
+        champ_stats['id'] = champion['id']
+        champ_stats['totalGames'] = champion['stats']['totalSessionsPlayed']
+        champ_stats['wins'] = champion['stats']['totalSessionsWon']
+        champ_stats['losses'] = champion['stats']['totalSessionsLost']
+        champ_stats['kills'] = champion['stats']['totalChampionKills']
+        champ_stats['deaths'] = champion['stats']['totalDeathsPerSession']
+        champ_stats['assists'] = champion['stats']['totalAssists']
+        champ_stats['totalPentaKills'] = champion['stats']['totalPentaKills']
+        champ_stats['maxKills'] = champion['stats']['maxChampionsKilled']
+        champ_stats['maxDeaths'] = champion['stats']['maxNumDeaths']
+        champions.append(champ_stats)
+    champions.sort(key=operator.itemgetter('totalGames'), reverse=True)
+    return champions
+
+
+# grab useful stats about the participant's current champion being played
+# these stats are pulled from this participant's past games with this champion
+def get_specific_champ_stats(summoner_id, region, current_champ_id):
+    print('currentgame champ stats')
+    stats = rw.get_ranked_stats(summoner_id, region=region)
+    print('got ranked stats')
+    for champion in stats['champions']:
+        if champion['id'] == current_champ_id:
+            champ_stats = {}
+            champ_stats['id'] = champion['id']
+            champ_stats['totalGames'] = champion['stats']['totalSessionsPlayed']
+            champ_stats['wins'] = champion['stats']['totalSessionsWon']
+            champ_stats['losses'] = champion['stats']['totalSessionsLost']
+            champ_stats['kills'] = round(Decimal(champion['stats']['totalChampionKills'])/Decimal(champion['stats']['totalSessionsPlayed']), 1)
+            champ_stats['deaths'] = round(Decimal(champion['stats']['totalDeathsPerSession'])/Decimal(champion['stats']['totalSessionsPlayed']), 1)
+            champ_stats['assists'] = round(Decimal(champion['stats']['totalAssists'])/Decimal(champion['stats']['totalSessionsPlayed']), 1)
+            champ_stats['totalPentaKills'] = champion['stats']['totalPentaKills']
+            champ_stats['maxKills'] = champion['stats']['maxChampionsKilled']
+            champ_stats['maxDeaths'] = champion['stats']['maxNumDeaths']
+            champ_stats['totalDamageDealt'] = champion['stats']['totalDamageDealt']
+            champ_stats['totalGold'] = champion['stats']['totalGoldEarned']
+            return champ_stats
+    # if not found, champ has not been played before
+    champ_stats = {}
+    champ_stats['id'] = 0
+    champ_stats['totalGames'] = 0
+    champ_stats['wins'] = 0
+    champ_stats['losses'] = 0
+    champ_stats['kills'] = 0
+    champ_stats['deaths'] = 0
+    champ_stats['assists'] = 0
+    champ_stats['totalPentaKills'] = 0
+    champ_stats['maxKills'] = 0
+    champ_stats['maxDeaths'] = 0
+    champ_stats['totalDamageDealt'] = 0
+    champ_stats['totalGold'] = 0
+    print('got current game champ stats')
+    return champ_stats
+
+
+# returns a dictionary of any applicable 'badges' for this participant, given his streak info as well
 def get_badges(participant, streak_info):
     list = []
     # determine how many wins in a row this participant has
@@ -118,25 +186,63 @@ def get_badges(participant, streak_info):
     if loss_count > 2:
         new_dict = {}
         new_dict['badgePath'] = 'snowflake.png'
-        new_dict['title'] = 'On tilt -- has lost ' + str(loss_count) + ' recent games in a row'
+        new_dict['title'] = 'On tilt -- has lost ' + str(loss_count) + ' recent games in a row.'
         list.append(new_dict)
-    # check for other badges
-    if float(participant['stats']['champ_kills']) / float(participant['stats']['total_games']) > 7.25:
+    # check for champKills, turretKills, minionKills badges
+    champs_per_game = round(Decimal(participant['stats']['champKills']) / Decimal(participant['stats']['totalGames']), 2)
+    turrets_per_game = round(Decimal(participant['stats']['turretKills']) / Decimal(participant['stats']['totalGames']), 2)
+    cs_per_game = round(Decimal(participant['stats']['minionKills']) / Decimal(participant['stats']['totalGames']))
+    if champs_per_game > 7.25:
         new_dict = {}
         new_dict['badgePath'] = 'helmet.png'
-        new_dict['title'] = 'Kills a high number of champions per game'
+        new_dict['title'] = 'Kills ' + str(champs_per_game) + ' champions per game!'
         list.append(new_dict)
-    if float(participant['stats']['turret_kills']) / float(participant['stats']['total_games']) > 1.6:
+    if turrets_per_game > 1.6:
         new_dict = {}
         new_dict['badgePath'] = 'castle.png'
-        new_dict['title'] = 'Kills a high number of turrets per game'
+        new_dict['title'] = 'Kills ' + str(turrets_per_game) + ' turrets per game!'
         list.append(new_dict)
-    if float(participant['stats']['minion_kills']) / float(participant['stats']['total_games']) > 200:
+    if cs_per_game > 200:
         new_dict = {}
         new_dict['badgePath'] = 'farmer.png'
-        new_dict['title'] = 'Consistently farms well'
+        new_dict['title'] = 'Consistently farms well! ' + str(cs_per_game) + ' minions per game!'
         list.append(new_dict)
-    # implement 'first blood' with warning icon
+    # is this player playing one of his 5 mostPlayedChamps?
+    for champ in participant['stats']['mostPlayedChamps'][:5]:
+        if participant['championId'] == champ['id']:
+            new_dict = {}
+            new_dict['badgePath'] = 'warrior.png'
+            new_dict['title'] = 'One of this player\'s 5 most played champs! \n' \
+                                'Has played ' + str(champ['totalGames']) + ' games with this champ!'
+            list.append(new_dict)
+    for champ in participant['stats']['mostPlayedChamps']:
+        if participant['championId'] == champ['id']:
+            if champ['totalGames'] < 10:
+                new_dict = {}
+                new_dict['badgePath'] = 'newchamp.png'
+                new_dict['title'] = 'This player has only played ' + str(champ['totalGames']) + ' games with this champ'
+                list.append(new_dict)
+            if champ['totalPentaKills'] > 0:
+                new_dict = {}
+                new_dict['badgePath'] = 'pentakill.png'
+                new_dict['title'] = 'This player has gotten ' + str(
+                    champ['totalPentaKills']) + ' pentakill(s) with this champ!'
+    # has this player gotten first Blood more than once in his last 5 games?
+    firstBlooded = 0
+    for info in streak_info[:5]:
+        if info['firstBlood']:
+            firstBlooded += 1
+    if firstBlooded > 1:
+        new_dict = {}
+        new_dict['badgePath'] = 'blood.png'
+        new_dict['title'] = 'This player has gotten First Blood ' + str(firstBlooded) + ' times in the last 5 games!'
+        list.append(new_dict)
+    # is this player new to this division?
+    if participant['stats']['rookie']:
+        new_dict = {}
+        new_dict['badgePath'] = 'baby.png'
+        new_dict['title'] = 'This player is new to this division'
+        list.append(new_dict)
     if not list:
         new_dict = {}
         new_dict['badgePath'] = 'dash.png'
@@ -164,63 +270,19 @@ def find_summoner_in_match(match, summoner_id):
             return participant
 
 
-def game_view_handler(request):
-    # check that our summoner exists
-    try:
-        region = request.form['region']
-        summoner = rw.get_summoner(name=request.form['search'], region=region)
-    except LoLException:
-        return render_template('error.html')
-    # check that a current game exists
-    try:
-        current_game = rw.get_current_game(summoner['id'], platform_id=abbrev_platforms[region], region=region)
-    except LoLException:
-        # return not found page
-        return render_template('game.html', current_game=None, summoner=summoner, region=region)
-    # make team lists
-    current_game['teams'] = {}
-    current_game['teams']['blueTeam'] = []
-    current_game['teams']['redTeam'] = []
-
-    # set up the streak info at top of page for this player
-    summoner['streak_info'] = []
-    summoner['streak_info'] = get_streak_info(summoner['id'], region)
-
-    # get banned champ imgs
-    for bannedChamp in current_game['bannedChampions']:
-        bannedChamp['img'] = get_champion_image_url(bannedChamp['championId'])
-    # gather participant information
-    for participant in current_game['participants']:
-        participant['img'] = get_champion_image_url(participant['championId'])
-        participant['spell1Img'] = get_ss_image_url(participant['spell1Id'])
-        participant['spell2Img'] = get_ss_image_url(participant['spell2Id'])
-        participant['profileIconImg'] = get_profile_image_url(participant['profileIconId'])
-        participant['stats'] = get_ranked_stats(participant['summonerId'], region)
-        # TODO: SPEED THIS PROCESS UP, TAKES 9 MINS
-        # get streak info for each participant
-        # participant['streak_info'] = get_streak_info(participant['summonerId'], region)
-        # get badges for each participant
-        # TODO: Change summoner['streak_info'] to participant['streak_info'] once speed up is achieved
-        participant['badges'] = get_badges(participant, summoner['streak_info'])
-        if participant['teamId'] == 100:
-            current_game['teams']['blueTeam'].append(participant)
-        else:
-            current_game['teams']['redTeam'].append(participant)
-    current_game['gameStartTime'] = datetime.datetime.fromtimestamp(
-        current_game['gameStartTime'] / 1000.0).time().replace(second=0, microsecond=0)
-    return render_template('game.html', current_game=current_game, summoner=summoner,
-                           region=region)
-
-
 # gets information about a certain match passed in by id
 def get_match_info(match_id, summoner_id, region):
+    # print('getting match')
     match = rw.get_match(match_id, region=region)
+    # print('got match')
+    print('dict forming')
     dict = {}
     summoner = find_summoner_in_match(match, summoner_id)
     dict['winner'] = summoner['stats']['winner']
     dict['items'] = []
-    for i in range(0, 6):
+    for i in xrange(6):
         dict['items'].append(get_item_image_url(summoner['stats']['item' + str(i)]))
+    dict['trinket'] = get_item_image_url(summoner['stats']['item6'])
     m, s = divmod(match['matchDuration'], 60)
     dict['duration'] = "%02d:%02d" % (m, s)
     dict['kills'] = summoner['stats']['kills']
@@ -229,46 +291,80 @@ def get_match_info(match_id, summoner_id, region):
     dict['ssImg1'] = get_ss_image_url(summoner['spell1Id'])
     dict['ssImg2'] = get_ss_image_url(summoner['spell2Id'])
     dict['firstBlood'] = summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']
+    dict['firstTower'] = summoner['stats']['firstTowerKill'] or summoner['stats']['firstTowerAssist']
+    dict['firstInhibitor'] = summoner['stats']['firstInhibitorKill'] or summoner['stats']['firstInhibitorAssist']
+    dict['champLevel'] = summoner['stats']['champLevel']
+    dict['minions'] = summoner['stats']['minionsKilled']
+    dict['monsters'] = summoner['stats']['neutralMinionsKilled']
+    dict['enemyJg'] = summoner['stats']['neutralMinionsKilledEnemyJungle']
+    dict['friendlyJg'] = summoner['stats']['neutralMinionsKilledTeamJungle']
+    dict['csPerMin'] = float(summoner['stats']['minionsKilled'] + summoner['stats']['neutralMinionsKilled']) / float(
+        match['matchDuration'] / 60)
+    dict['pentaKills'] = summoner['stats']['pentaKills']
+    dict['gold'] = summoner['stats']['goldEarned']
+    print('dict formed')
+    # get each of the other participants' names and champion images
+    dict['participants'] = get_match_participants(match)
+    dict['killParticipation'] = kill_participation(match, summoner)
+    # get information about the summoner's champion played this game, so we can provide improvement suggestions
+    dict['currentChampInfo'] = get_specific_champ_stats(summoner_id, region, summoner['championId'])
+    # print ('got match_info')
     return dict
 
 
+# gets participant names and their corresponding champions played for a given match
+# this match dictionary must be of the format provided by RiotWatcher's get_match
+def get_match_participants(match):
+    # print('getting participants')
+    participants = []
+    for pi in match['participantIdentities']:
+        participant = {}
+        participant['name'] = pi['player']['summonerName']
+        participant_id = pi['participantId']
+        for p in match['participants']:
+            if p['participantId'] == participant_id:
+                participant['champImg'] = get_champion_image_url(p['championId'])
+                participant['teamId'] = p['teamId']
+        participants.append(participant)
+    # print('got participants')
+    return participants
+
+
+# returns a player's kill participation in a game, based off of how many kills their team had, and how many
+# kills that player was a part of (took the kill or had an assist)
+def kill_participation(match, summoner):
+    team_kills = 0
+    for p in match['participants']:
+        if p['teamId'] == summoner['teamId']:
+            team_kills += p['stats']['kills']
+    summoner_ka = summoner['stats']['kills'] + summoner['stats']['assists']
+    kp = round(Decimal(summoner_ka)/Decimal(team_kills) * 100, 2)
+    return kp
+
+
+# get streak info, this is info about a player's last 10 matches, including whether or not they won
+# those matches, and whether or not they got first Blood in those matches
 def get_streak_info(summoner_id, region):
     match_list = rw.get_match_list(summoner_id, region=region, begin_index=0, end_index=10)
-    for match in match_list['matches']:
-        match['info'] = get_match_info(match['matchId'], summoner_id, region)
     list = []
     for match in match_list['matches']:
-        if match['info']['winner']:
+        match = rw.get_match(match['matchId'], region=region)
+        summoner = find_summoner_in_match(match, summoner_id)
+        if summoner['stats']['winner']:
             dict = {}
             dict['icon'] = 'check-circle'
             dict['color'] = '#2ecc71'
+            dict['firstBlood'] = False
+            if summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']:
+                dict['firstBlood'] = True
             list.append(dict)
         else:
             dict = {}
             dict['icon'] = 'times-circle'
             dict['color'] = '#e74c3c'
+            dict['firstBlood'] = False
+            if summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']:
+                dict['firstBlood'] = True
             list.append(dict)
+    print ('got streak info')
     return list
-
-
-def summoner_view_handler(request):
-    # check that our summoner exists
-    try:
-        region = request.form['region']
-        summoner = rw.get_summoner(name=request.form['search'], region=region)
-    except LoLException:
-        # return not found page
-        return render_template('error.html')
-    # grab the ranked match list for that summoner
-    try:
-        match_list = rw.get_match_list(summoner['id'], region=region, begin_index=0, end_index=10)
-    except LoLException:
-        return render_template('error.html')
-    # get match info, champ info for the match, and streak info
-    for match in match_list['matches']:
-        match['img'] = get_champion_image_url(match['champion'])
-        match['champ_info'] = rw.static_get_champion(match['champion'])
-        match['info'] = get_match_info(match['matchId'], summoner['id'], region)
-    match_list['streak_info'] = []
-    match_list['streak_info'] = get_streak_info(summoner['id'], region)
-    return render_template('summoner.html', summoner=summoner, match_list=match_list, region=region)

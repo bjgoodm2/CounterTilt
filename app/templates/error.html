@@ -11,7 +11,9 @@
                 <h5 class="header col s12 light">Maybe you're searching for a summoner that doesn't exist.  Maybe that functionality doesn't exist.  Maybe the end of the world just happened. <br> In any case, something went wrong...</h5>
             </div>
             <div class="row center">
-                <a href="index" id="return" class="btn-large waves-effect waves-light teal lighten-1">Go Back Home</a>
+                <a href="{{url_for('index')}}" id="return" class="btn-large waves-effect waves-light teal lighten-1"
+                        onclick="setTimeout(function(){ loading(); }, 3000);">
+                    Go Back Home</a>
             </div>
             <br><br>
 

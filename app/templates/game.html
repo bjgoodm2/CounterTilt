@@ -15,9 +15,11 @@
                 {% endfor %}
             </div>
             <div class="row center">
-                <form action="{{url_for('summoner')}}" method="post">
+                <form action="{{url_for('search')}}" method="post"
+                      onsubmit="setTimeout(function(){ loading(); }, 3000);">
                     <input type="hidden" value="{{region}}" name="region" id="region">
                     <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                    <input type="hidden" value="true" name="stats">
                     <input value="See Stats" type="submit" class="btn-large waves-effect waves-light teal lighten-1"
                            id="see_stats">
                 </form>
@@ -35,10 +37,12 @@
         <th>Champion</th>
         <th>Current Standing</th>
         <th>Ranked Wins</th>
-        <th>Badges</th>
-        <th>Champ Kills/Game</th>
+        <th style="text-align: center;">Badges</th>
+        <!--<th>Champ Kills/Game</th>
         <th>Turret Kills/Game</th>
-        <th>Minion Kills/Game</th>
+        <th>Minion Kills/Game</th>-->
+        <th>Champion Winrate</th>
+        <th>Champion KDA</th>
     </tr>
     </thead>
     <tbody>
@@ -46,7 +50,9 @@
     <tr>
         <td class="game-participant"><img src="{{ participant['profileIconImg'] }}" alt="Profile icon img" height="25"
                                           width="25">
-            {{ participant['summonerName'] }}
+            <a href="{{url_for('summoner') + '/' + region + '/' + participant['summonerName']}}" style="color: black;">
+                {{ participant['summonerName'] }}
+            </a>
         </td>
         <td>
             <img src="{{ participant['img'] }}" alt="Champ img" height="40" width="40">
@@ -66,41 +72,65 @@
         <td><span class="wins">{{ participant['stats']['wins'] }}</span>
             /
             <span class="losses"> {{ participant['stats']['losses'] }}</span>
-            {% if (participant['stats']['wins'] / participant['stats']['total_games']) < 0.50 %}
+            {% if (participant['stats']['wins'] / participant['stats']['totalGames']) < 0.50 %}
                 <span class="red-text text-darken-3">
-                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+                    ({{ (participant['stats']['wins'] / participant['stats']['totalGames'])|round(4, 'common') * 100 }}%)
                 </span>
-            {% elif (participant['stats']['wins'] / participant['stats']['total_games']) < 0.54 %}
-                <span class="lime-text ">
-                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+            {% elif (participant['stats']['wins'] / participant['stats']['totalGames']) < 0.52 %}
+                <span class="lime-text">
+                    ({{ (participant['stats']['wins'] / participant['stats']['totalGames'])|round(4, 'common') * 100 }}%)
                 </span>
             {% else %}
             <span class="green-text text-darken-1">
-                    ({{ (participant['stats']['wins'] / participant['stats']['total_games'])|round(4, 'common') * 100 }}%)
+                    ({{ (participant['stats']['wins'] / participant['stats']['totalGames'])|round(4, 'common') * 100 }}%)
                 </span>
             {% endif %}
         </td>
-        <td>
+        <td class="badges">
             {% for badge in participant['badges'] %}
             <img src="{{ url_for('static', filename='img/badges/') }}{{ badge['badgePath'] }}"
-                 title="{{ badge['title'] }}"
+                 class="tooltipped" data-position="bottom" data-delay="25"
+                 data-tooltip="{{ badge['title'] }}"
                  height="20" width="20">
             {% endfor %}
         </td>
-        <td>
+        <!--<td>
             <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/score.png"></div>
-            <div>{{ (participant['stats']['champ_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            <div>{{ (participant['stats']['champKills'] / participant['stats']['totalGames'])|round(2, 'common') }}
             </div>
         </td>
         <td>
             <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/score.png"></div>
-            <div>{{ (participant['stats']['turret_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            <div>{{ (participant['stats']['turretKills'] / participant['stats']['totalGames'])|round(2, 'common') }}
             </div>
         </td>
         <td>
             <div><img src="http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/minion.png"></div>
-            <div>{{ (participant['stats']['minion_kills'] / participant['stats']['total_games'])|round(2, 'common') }}
+            <div>{{ (participant['stats']['minionKills'] / participant['stats']['totalGames'])|round(2, 'common') }}
             </div>
+        </td>-->
+        <td>
+            <div>
+                <span class="tooltipped
+                {% if ((participant['stats']['currentChampInfo']['wins'] / participant['stats']['currentChampInfo']['totalGames'])|round(3, 'common') * 100) < 50 %}
+                red-text text-darken-3
+                {% elif ((participant['stats']['currentChampInfo']['wins'] / participant['stats']['currentChampInfo']['totalGames'])|round(3, 'common') * 100) < 52 %}
+                lime-text
+                {% else %}
+                green-text text-darken-1
+                {% endif %}"
+                      data-position="bottom" data-delay="25"
+                      data-tooltip="({{ participant['stats']['currentChampInfo']['totalGames'] }} total Games)">
+                    {{ (participant['stats']['currentChampInfo']['wins'] / participant['stats']['currentChampInfo']['totalGames'])|round(3, 'common') * 100 }}%
+                </span>
+            </div>
+        </td>
+        <td>
+            <span class="tooltipped" data-position="left" data-delay="25"
+                  data-tooltip="Max Kills in a single game: {{participant['stats']['currentChampInfo']['maxKills']}}
+Max Deaths in a single game: {{participant['stats']['currentChampInfo']['maxDeaths']}}">
+                {{participant['stats']['currentChampInfo']['kills']}} / {{participant['stats']['currentChampInfo']['deaths']}} / {{participant['stats']['currentChampInfo']['assists']}}
+            </span>
         </td>
     </tr>
     {% endfor %}
@@ -128,15 +158,18 @@
                     Or would you like to look at stats for {{ summoner['name'] }}?</h5>
             </div>
             <div class="row center">
-                <form action="{{url_for('summoner')}}" method="post">
-                    <input type="hidden" value="{{region}}" name="region" id="region">
-                    <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                <form action="{{url_for('search')}}" method="post"
+                      onsubmit="setTimeout(function(){ loading(); }, 3000);">
+                    <input type="hidden" value="{{region}}" name="region">
+                    <input type="hidden" value="{{summoner['name']}}" name="summonerName">
+                    <input type="hidden" value="true" name="stats">
                     <input value="See Stats" type="submit" class="btn-large waves-effect waves-light teal lighten-1"
                            id="see_stats">
                 </form>
                 <br>
-                <a href="index" id="return" class="btn-large waves-effect waves-light teal lighten-1">Search for a new
-                    Summoner</a>
+                <a href="{{url_for('index')}}" id="return" class="btn-large waves-effect waves-light teal lighten-1"
+                   onclick="setTimeout(function(){ loading(); }, 3000);">
+                    Search for a new Summoner</a>
             </div>
         </div>
     </div>

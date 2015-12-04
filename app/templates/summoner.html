@@ -15,9 +15,10 @@
                 {% endfor %}
             </div>
             <div class="row center">
-                <form action="{{url_for('game')}}" method="post">
+                <form action="{{url_for('search')}}" method="post" onsubmit="setTimeout(function(){ loading(); }, 3000);">
                     <input type="hidden" value="{{region}}" name="region" id="region">
-                    <input type="hidden" value="{{summoner['name']}}" name="search" id="search">
+                    <input type="hidden" value="{{summoner['name']}}" name="summonerName" id="summonerName">
+                    <input type="hidden" value="false" name="stats">
                     <input value="See Current Game" type="submit"
                            class="btn-large waves-effect waves-light teal lighten-1" id="see_game">
                 </form>
@@ -27,59 +28,132 @@
     <div class="parallax"><img src="/static/img/shadow_isles.jpg" alt="Shadow Isles"></div>
 </div>
 <h5 id="table-title">Recent Match History</h5>
-<div class="col s9">
-    <table class="striped bordered">
-        <tbody>
-        {% for match in match_list['matches'] %}
-        <tr class=" {% if match['info']['winner'] %}
+<div class="row">
+    <div class="col s12">
+        <table class="striped bordered match-history collapsible" data-collapsible="accordion">
+            <tbody>
+            {% for match in match_list['matches'] %}
+            <tr class="collapsible-header match-history {% if match['info']['winner'] %}
                 match-win
                 {% else %}
                 match-loss
                 {% endif %}">
-            <td class="champion-tooltip">
-                <img src="{{match['img']}}" height="60" width="60">
-            </td>
-            <td class="summoner-spells">
-                <img src="{{match['info']['ssImg1']}}" height="30" width="30">
-                <img src="{{match['info']['ssImg2']}}" height="30 width=30">
-            </td>
-            <td class="game-result">
-                {% if match['info']['winner'] %}
-                <div class="teal-text text-darken-1">Win</div>
-                {% else %}
-                <div class="red-text text-darken-3">Loss</div>
-                {% endif %}
-            <span>
+                <td class="champion-tooltip">
+                    <img src="{{match['img']}}" height="60" width="60">
+                </td>
+                <td class="summoner-spells">
+                    <img src="{{match['info']['ssImg1']}}" height="30" width="30">
+                    <img src="{{match['info']['ssImg2']}}" height="30 width=30">
+                </td>
+                <td class="game-result">
+                    {% if match['info']['winner'] %}
+                    <div class="teal-text text-darken-1">Win</div>
+                    {% else %}
+                    <div class="red-text text-darken-3">Loss</div>
+                    {% endif %}
+            <span class="game-result-champ-description">
                 {{ match['champ_info']['name'] }}, {{ match['champ_info']['title']}}
             </span>
-            </td>
-            <td class="kda">
-                KDA: {{ match['info']['kills'] }}/{{ match['info']['deaths']}}/{{match['info']['assists']}}
-                {% if match['info']['firstBlood'] %}
-                <img src="{{ url_for('static', filename='img/badges/blood.png')}}" title="drew First Blood"
-                     height="20" width="20">
-                {% endif %}
-            </td>
-            <td class="item-box">
-                <div class="row">
-                    {% for item in match['info']['items'] %}
-                    <div class="col s4">
-                        <img class="item-box-item" src="{{ item }}">
+                </td>
+                <td class="kda">
+                    <div class="tooltipped" data-position="bottom" data-delay="25"
+                         data-tooltip="Kill Participation: {{match['info']['killParticipation']}}%"class="kda">
+                        <div>Kills: {{ match['info']['kills'] }}</div>
+                        <div>Deaths: {{ match['info']['deaths']}}</div>
+                        <div>Assists: {{match['info']['assists']}}</div>
                     </div>
-                    {% endfor %}
-                </div>
-            </td>
-            <td class="match-duration">
-                Game Duration:
-                {{ match['info']['duration'] }}
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div class="col s3">
-    <!--Add List of F2P Champs here-->
+                </td>
+                <td class="level-cs-gold">
+                    <div>Level {{match['info']['champLevel']}}</div>
+                    <div class="tooltipped" data-position="bottom" data-delay="25"
+                         data-tooltip="Friendly jungle: {{match['info']['friendlyJg']}}
+Enemy jungle: {{match['info']['enemyJg']}}
+Minions: {{match['info']['minions']}}
+{{match['info']['csPerMin']|round(2, 'common')}} CS/min">
+                        {{match['info']['minions'] + match['info']['monsters']}} CS
+                    </div>
+                    <div>{{(match['info']['gold']/1000)|round|int}}k gold</div>
+                </td>
+                <td class="item-trinket-box">
+                    <div class="row item-box">
+                        {% for item in match['info']['items'] %}
+                        <div class="col s4">
+                            <img class="tooltipped item-box-item" data-position="bottom" data-delay="15"
+                         data-tooltip="{{item['name']}}" src="{{ item['url'] }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <img class="trinket" src="{{match['info']['trinket']['url']}}">
+                    </div>
+                </td>
+                <td class="match-participants">
+                    <div class="row">
+                        <div class="col s6">
+                            {% for participant in match['info']['participants'] %}
+                            {% if participant['teamId'] == 100 %}
+                            <div>
+                                <img class="match-participant-img" src="{{ participant['champImg'] }}">
+                                <a class="match-participant" href="{{url_for('summoner') + '/' + region + '/' + participant['name']}}">
+                                    {{participant['name']}}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="col s6">
+                            {% for participant in match['info']['participants'] %}
+                            {% if participant['teamId'] == 200 %}
+                            <div>
+                                <img class="match-participant-img" src="{{ participant['champImg'] }}">
+                                <a class="match-participant" href="{{url_for('summoner') + '/' + region + '/' + participant['name']}}">
+                                    {{participant['name']}}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if match['info']['firstBlood'] %}
+                    <img src="{{ url_for('static', filename='img/badges/blood.png')}}"
+                         class="tooltipped" data-position="bottom" data-delay="25" data-tooltip="Drew First Blood"
+                         height="20" width="20">
+                    {% endif %}
+                    {% if match['info']['firstTower'] %}
+                    <img src="{{ url_for('static', filename='img/badges/castle.png')}}"
+                         class="tooltipped" data-position="bottom" data-delay="25" data-tooltip="Killed First Tower"
+                         height="20" width="20">
+                    {% endif %}
+                    {% if match['info']['firstInhibitor'] %}
+                    <img src="{{ url_for('static', filename='img/badges/inhibitor.png')}}"
+                         class="tooltipped" data-position="bottom" data-delay="25" data-tooltip="Killed First Inhibitor"
+                         height="20" width="20">
+                    {% endif %}
+                    {% if match['info']['pentaKills'] > 0 %}
+                    <img src="{{ url_for('static', filename='img/badges/pentakill.png')}}"
+                         class="tooltipped" data-position="bottom" data-delay="25" data-tooltip="Got a Pentakill!"
+                         height="20" width="20">
+                    {% endif %}
+                </td>
+                <td class="match-duration">
+                    Game Duration:
+                    {{ match['info']['duration'] }}
+                </td>
+            </tr>
+            <tr class="collapsible-body match-history">
+                <td>
+                    Ayyyyyy
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!--<div class="col s3">
+        Add List of F2P Champs here
+    </div>-->
 </div>
 {% else %}
 <div class="parallax-container">
@@ -94,7 +168,9 @@
                     region/name correctly.</h5>
             </div>
             <div class="row center">
-                <a href="index" id="return" class="btn-large waves-effect waves-light teal lighten-1">Go Back</a>
+                <a href="{{url_for('index')}}" id="return" class="btn-large waves-effect waves-light teal lighten-1"
+                   onclick="setTimeout(function(){ loading(); }, 3000);">Go
+                    Back</a>
             </div>
             <br><br>
 

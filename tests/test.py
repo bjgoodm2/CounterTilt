@@ -51,3 +51,40 @@ class TestRWAndCT(TestCase):
         for match in match_list['matches']:
             match['img'] = ct.get_champion_image_url(match['champion'])
         # self.assertTrue('.png' in match_list[0]['img'])
+
+    def test_ss_img_url(self):
+        # grab smite
+        ss_image_url = ct.get_ss_image_url('11')
+        self.assertEquals(ss_image_url, 'http://ddragon.leagueoflegends.com/cdn/5.23.1/img/spell/SummonerSmite.png')
+
+    def test_profile_img_url(self):
+        img_url = ct.get_profile_image_url('552')
+        self.assertEquals(img_url, 'http://ddragon.leagueoflegends.com/cdn/5.23.1/img/profileicon/552.png')
+
+    def test_get_ranked_stats(self):
+        # pretend Tiltlorrd is in game with Udyr
+        me = self.w.get_summoner(name='Tiltlorrd')
+        ranked_stats = ct.get_ranked_stats(me['id'], 'na', '77')
+        self.assertFalse(ranked_stats['rookie'])
+
+    def test_get_most_played_champs(self):
+        me = self.w.get_summoner(name='Tiltlorrd')
+        most_played_champs = ct.get_most_played_champs(me['id'], 'na')
+        success = False
+        for champion in most_played_champs[:5]:
+            if champion['id'] == '77':
+                success = True
+        # Udyr should not be one of Tiltlorrd's top 5 most played champions
+        self.assertFalse(success)
+
+    def test_get_specific_champ_stats(self):
+        me = self.w.get_summoner(name='Tiltlorrd')
+        champ_stats = ct.get_specific_champ_stats(me['id'], 'na', '77')
+        self.assertEquals(champ_stats['totalPentaKills'], 0)
+
+    def test_kill_participation(self):
+        match = self.w.get_match('2027398028', region='na')
+        summoner = ct.find_summoner_in_match(match, '55839562')
+        kill_participation = ct.kill_participation(match, summoner)
+        self.assertEquals(kill_participation, 25.0)
+

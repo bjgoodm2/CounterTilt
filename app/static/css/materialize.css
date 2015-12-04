@@ -5776,7 +5776,9 @@ small {
   overflow: hidden;
   left: 0;
   top: 0;
-  will-change: top, left; }
+  will-change: top, left;
+  white-space: pre;
+}
 
 .backdrop {
   position: absolute;
@@ -6115,21 +6117,9 @@ a.waves-effect .waves-ripple {
   margin: 0.5rem 0 1rem 0; }
 
 .collapsible-header {
-  display: block;
-  cursor: pointer;
-  min-height: 3rem;
-  line-height: 3rem;
-  padding: 0 1rem;
-  background-color: #fff;
-  border-bottom: 1px solid #ddd; }
+}
   .collapsible-header i {
-    width: 2rem;
-    font-size: 1.6rem;
-    line-height: 3rem;
-    display: block;
-    float: left;
-    text-align: center;
-    margin-right: 1rem; }
+  }
 
 .collapsible-body {
   display: none;

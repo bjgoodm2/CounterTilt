@@ -119,9 +119,23 @@ footer.page-footer {
     float: left;
 }
 
+.item-trinket-box {
+    width: 190px;
+    float: left;
+    margin-top: 10px;
+}
+
 .item-box-item {
     height: 40px;
     width: 40px;
+    padding: 2px;
+}
+
+.trinket {
+    height: 40px;
+    width: 40px;
+    margin-top: 24px;
+    margin-left: 8px;
     padding: 2px;
 }
 
@@ -135,7 +149,12 @@ footer.page-footer {
 
 .game-participant {
     font-size: 120%;
-    width:200px;
+    width: 200px;
+}
+
+.badges {
+    width: 200px;
+    text-align: center;
 }
 
 #table-title {
@@ -144,10 +163,62 @@ footer.page-footer {
 
 .match-win {
     background-color: rgba(56, 142, 60, 0.5) !important;
+    margin-bottom: 8px;
+    z-index: 1;
 }
 
 .match-loss {
     background-color: rgba(198, 40, 40, 0.5) !important;
+    margin-bottom: 8px;
+    z-index: 1;
+}
+
+.kda {
+    width: 100px;
+    text-shadow: 1px 1px 1px #1a1a1a;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.level-cs-gold {
+    width: 100px;
+    text-shadow: 1px 1px 1px #1a1a1a;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.game-result {
+    width: 150px;
+}
+
+.game-result-champ-description {
+    text-shadow: 1px 1px 1px #1a1a1a;
+}
+
+.match-duration {
+    text-shadow: 1px 1px 1px #1a1a1a;
+}
+
+.match-history {
+    color: white;
+    border: 1px solid #dcdcdc;
+    box-shadow: 0 1px #eaeaea;
+    border-radius: 2px;
+}
+
+.match-participants {
+    width: 500px;
+    text-shadow: 1px 1px 1px #1a1a1a;
+}
+
+.match-participant {
+    color: white;
+}
+
+.match-participant-img {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
 }
 
 #loading {
@@ -159,7 +230,26 @@ footer.page-footer {
     left: 50%;
     margin-left: -250px;
     margin-top: -357px;
-    z-index:99;
+    z-index: 99;
     text-align: center;
     cursor: wait;
 }
+
+/* Overwrite some of the collapsible classes
+.collapsible-header {
+  display: block;
+  cursor: pointer;
+  min-height: 3rem;
+  line-height: 3rem;
+  padding: 0 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd; }
+  .collapsible-header i {
+    width: 2rem;
+    font-size: 1.6rem;
+    line-height: 3rem;
+    display: block;
+    float: left;
+    text-align: center;
+    margin-right: 1rem;
+    }*/
