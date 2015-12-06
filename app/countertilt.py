@@ -3,7 +3,7 @@ import requests, riotwatcher, datetime, operator
 from flask import render_template
 from riotwatcher import platforms, LoLException, RiotWatcher
 
-API_KEY = 'b5dc6253-ade4-471b-afde-c452a7990125'
+API_KEY = '' #put your API key here
 CURR_SEASON = 'SEASON2015'
 
 key = API_KEY
