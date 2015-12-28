@@ -1,3 +1,4 @@
+from pprint import pprint
 from app import app
 import datetime
 import requests
@@ -81,14 +82,14 @@ def summoner(region, summoner_name):
         return render_template('error.html')
     # grab the ranked match list for that summoner
     try:
-        match_list = rw.get_match_list(summoner['id'], region=region, begin_index=0, end_index=2)
+        match_list = rw.get_match_list(summoner['id'], region=region, begin_index=0, end_index=10)
     except LoLException:
         return render_template('error.html')
     # get match info, champ info for the match, and streak info
     for match in match_list['matches']:
         match['img'] = ct.get_champion_image_url(match['champion'])
         match['champ_info'] = rw.static_get_champion(match['champion'])
-        match['info'] = ct.get_match_info(match['matchId'], summoner['id'], region)
+        match['info'] = ct.get_match_info(match, summoner['id'], region)
     match_list['streak_info'] = []
     match_list['streak_info'] = ct.get_streak_info(summoner['id'], region)
     return render_template('summoner.html', summoner=summoner, match_list=match_list, region=region)

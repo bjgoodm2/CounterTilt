@@ -10,8 +10,8 @@
             <h1 class="header center light text-darken-2">{{summoner['name']}}</h1>
 
             <div class="row center">
-                {% for game in match_list['streak_info'] %}
-                <i class="fa fa-{{game['icon']}} fa-2x" style="color:{{game['color']}};"></i>
+                {% for match in match_list['streak_info'] %}
+                <i class="fa fa-{{match['icon']}} fa-2x" style="color:{{match['color']}};"></i>
                 {% endfor %}
             </div>
             <div class="row center">
@@ -30,10 +30,10 @@
 <h5 id="table-title">Recent Match History</h5>
 <div class="row">
     <div class="col s12">
-        <table class="striped bordered match-history collapsible" data-collapsible="accordion">
+        <table class="striped bordered match-history">
             <tbody>
             {% for match in match_list['matches'] %}
-            <tr class="collapsible-header match-history {% if match['info']['winner'] %}
+            <tr class="match-history {% if match['info']['winner'] %}
                 match-win
                 {% else %}
                 match-loss
@@ -140,11 +140,6 @@ Minions: {{match['info']['minions']}}
                 <td class="match-duration">
                     Game Duration:
                     {{ match['info']['duration'] }}
-                </td>
-            </tr>
-            <tr class="collapsible-body match-history">
-                <td>
-                    Ayyyyyy
                 </td>
             </tr>
             {% endfor %}

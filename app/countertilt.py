@@ -1,13 +1,15 @@
 from decimal import *
+from pprint import pprint
 import requests, riotwatcher, datetime, operator
 from flask import render_template
 from riotwatcher import platforms, LoLException, RiotWatcher
 
-API_KEY = '' #put your API key here
+API_KEY = 'b5dc6253-ade4-471b-afde-c452a7990125'
 CURR_SEASON = 'SEASON2015'
 
 key = API_KEY
 rw = RiotWatcher(API_KEY)
+latest_version = rw.static_get_versions()[0]
 
 # abbreviated platforms for use in views
 abbrev_platforms = {
@@ -27,7 +29,6 @@ abbrev_platforms = {
 # fetches the image url associated with the given champ id
 def get_champion_image_url(champ_id):
     champion = rw.static_get_champion(champ_id, champ_data='image')
-    latest_version = rw.static_get_versions()[0]
     return 'http://ddragon.leagueoflegends.com/cdn/{version}/img/champion/{champ_key}'.format(
         version=latest_version,
         champ_key=champion['image']['full'])
@@ -36,7 +37,6 @@ def get_champion_image_url(champ_id):
 # fetches the image url associated with the given summoner spell id
 def get_ss_image_url(ss_id):
     ss = rw.static_get_summoner_spell(ss_id, spell_data='image')
-    latest_version = rw.static_get_versions()[0]
     return 'http://ddragon.leagueoflegends.com/cdn/{version}/img/spell/{spell_key}'.format(
         version=latest_version,
         spell_key=ss['image']['full'])
@@ -44,7 +44,6 @@ def get_ss_image_url(ss_id):
 
 # fetches the image url associated with the given profile icon id
 def get_profile_image_url(profile_icon_id):
-    latest_version = rw.static_get_versions()[0]
     return 'http://ddragon.leagueoflegends.com/cdn/{version}/img/profileicon/{profile_icon_key}.png'.format(
         version=latest_version,
         profile_icon_key=profile_icon_id)
@@ -95,6 +94,7 @@ def get_ranked_stats(summoner_id, region, current_champ_id):
         'totalNeutralMinionsKilled']
     dict['mostPlayedChamps'] = get_most_played_champs(summoner_id, region)
     dict['currentChampInfo'] = get_specific_champ_stats(summoner_id, region, current_champ_id)
+    print('got ranked stats')
     return dict
 
 
@@ -122,9 +122,7 @@ def get_most_played_champs(summoner_id, region):
 # grab useful stats about the participant's current champion being played
 # these stats are pulled from this participant's past games with this champion
 def get_specific_champ_stats(summoner_id, region, current_champ_id):
-    print('currentgame champ stats')
     stats = rw.get_ranked_stats(summoner_id, region=region)
-    print('got ranked stats')
     for champion in stats['champions']:
         if champion['id'] == current_champ_id:
             champ_stats = {}
@@ -140,6 +138,7 @@ def get_specific_champ_stats(summoner_id, region, current_champ_id):
             champ_stats['maxDeaths'] = champion['stats']['maxNumDeaths']
             champ_stats['totalDamageDealt'] = champion['stats']['totalDamageDealt']
             champ_stats['totalGold'] = champion['stats']['totalGoldEarned']
+            print('got current game champ stats')
             return champ_stats
     # if not found, champ has not been played before
     champ_stats = {}
@@ -271,63 +270,55 @@ def find_summoner_in_match(match, summoner_id):
 
 
 # gets information about a certain match passed in by id
-def get_match_info(match_id, summoner_id, region):
-    # print('getting match')
-    match = rw.get_match(match_id, region=region)
-    # print('got match')
+def get_match_info(match, summoner_id, region):
+    match = rw.get_match(match['matchId'], region=region)
     print('dict forming')
-    dict = {}
     summoner = find_summoner_in_match(match, summoner_id)
-    dict['winner'] = summoner['stats']['winner']
-    dict['items'] = []
+    match['winner'] = summoner['stats']['winner']
+    match['items'] = []
     for i in xrange(6):
-        dict['items'].append(get_item_image_url(summoner['stats']['item' + str(i)]))
-    dict['trinket'] = get_item_image_url(summoner['stats']['item6'])
+        match['items'].append(get_item_image_url(summoner['stats']['item' + str(i)]))
+    match['trinket'] = get_item_image_url(summoner['stats']['item6'])
     m, s = divmod(match['matchDuration'], 60)
-    dict['duration'] = "%02d:%02d" % (m, s)
-    dict['kills'] = summoner['stats']['kills']
-    dict['deaths'] = summoner['stats']['deaths']
-    dict['assists'] = summoner['stats']['assists']
-    dict['ssImg1'] = get_ss_image_url(summoner['spell1Id'])
-    dict['ssImg2'] = get_ss_image_url(summoner['spell2Id'])
-    dict['firstBlood'] = summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']
-    dict['firstTower'] = summoner['stats']['firstTowerKill'] or summoner['stats']['firstTowerAssist']
-    dict['firstInhibitor'] = summoner['stats']['firstInhibitorKill'] or summoner['stats']['firstInhibitorAssist']
-    dict['champLevel'] = summoner['stats']['champLevel']
-    dict['minions'] = summoner['stats']['minionsKilled']
-    dict['monsters'] = summoner['stats']['neutralMinionsKilled']
-    dict['enemyJg'] = summoner['stats']['neutralMinionsKilledEnemyJungle']
-    dict['friendlyJg'] = summoner['stats']['neutralMinionsKilledTeamJungle']
-    dict['csPerMin'] = float(summoner['stats']['minionsKilled'] + summoner['stats']['neutralMinionsKilled']) / float(
+    match['duration'] = "%02d:%02d" % (m, s)
+    match['kills'] = summoner['stats']['kills']
+    match['deaths'] = summoner['stats']['deaths']
+    match['assists'] = summoner['stats']['assists']
+    match['ssImg1'] = get_ss_image_url(summoner['spell1Id'])
+    match['ssImg2'] = get_ss_image_url(summoner['spell2Id'])
+    match['firstBlood'] = summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']
+    match['firstTower'] = summoner['stats']['firstTowerKill'] or summoner['stats']['firstTowerAssist']
+    match['firstInhibitor'] = summoner['stats']['firstInhibitorKill'] or summoner['stats']['firstInhibitorAssist']
+    match['champLevel'] = summoner['stats']['champLevel']
+    match['minions'] = summoner['stats']['minionsKilled']
+    match['monsters'] = summoner['stats']['neutralMinionsKilled']
+    match['enemyJg'] = summoner['stats']['neutralMinionsKilledEnemyJungle']
+    match['friendlyJg'] = summoner['stats']['neutralMinionsKilledTeamJungle']
+    match['csPerMin'] = float(summoner['stats']['minionsKilled'] + summoner['stats']['neutralMinionsKilled']) / float(
         match['matchDuration'] / 60)
-    dict['pentaKills'] = summoner['stats']['pentaKills']
-    dict['gold'] = summoner['stats']['goldEarned']
+    match['pentaKills'] = summoner['stats']['pentaKills']
+    match['gold'] = summoner['stats']['goldEarned']
     print('dict formed')
     # get each of the other participants' names and champion images
-    dict['participants'] = get_match_participants(match)
-    dict['killParticipation'] = kill_participation(match, summoner)
+    get_match_participants(match)
+    match['killParticipation'] = kill_participation(match, summoner)
     # get information about the summoner's champion played this game, so we can provide improvement suggestions
-    dict['currentChampInfo'] = get_specific_champ_stats(summoner_id, region, summoner['championId'])
-    # print ('got match_info')
-    return dict
+    match['currentChampInfo'] = get_specific_champ_stats(summoner_id, region, summoner['championId'])
+    return match
 
 
 # gets participant names and their corresponding champions played for a given match
 # this match dictionary must be of the format provided by RiotWatcher's get_match
 def get_match_participants(match):
-    # print('getting participants')
-    participants = []
+    print 'getting match participants'
     for pi in match['participantIdentities']:
-        participant = {}
-        participant['name'] = pi['player']['summonerName']
+        name = pi['player']['summonerName']
         participant_id = pi['participantId']
         for p in match['participants']:
             if p['participantId'] == participant_id:
-                participant['champImg'] = get_champion_image_url(p['championId'])
-                participant['teamId'] = p['teamId']
-        participants.append(participant)
-    # print('got participants')
-    return participants
+                p['champImg'] = get_champion_image_url(p['championId'])
+                p['name'] = name
+    print('got match participants')
 
 
 # returns a player's kill participation in a game, based off of how many kills their team had, and how many
@@ -339,6 +330,7 @@ def kill_participation(match, summoner):
             team_kills += p['stats']['kills']
     summoner_ka = summoner['stats']['kills'] + summoner['stats']['assists']
     kp = round(Decimal(summoner_ka)/Decimal(team_kills) * 100, 2)
+    print('got kill participation')
     return kp
 
 
@@ -350,21 +342,16 @@ def get_streak_info(summoner_id, region):
     for match in match_list['matches']:
         match = rw.get_match(match['matchId'], region=region)
         summoner = find_summoner_in_match(match, summoner_id)
+        summoner['stats']['firstBlood'] = False
+        if summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']:
+                summoner['stats']['firstBlood'] = True
         if summoner['stats']['winner']:
-            dict = {}
-            dict['icon'] = 'check-circle'
-            dict['color'] = '#2ecc71'
-            dict['firstBlood'] = False
-            if summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']:
-                dict['firstBlood'] = True
-            list.append(dict)
+            summoner['stats']['icon'] = 'check-circle'
+            summoner['stats']['color'] = '#2ecc71'
+            list.append(summoner['stats'])
         else:
-            dict = {}
-            dict['icon'] = 'times-circle'
-            dict['color'] = '#e74c3c'
-            dict['firstBlood'] = False
-            if summoner['stats']['firstBloodKill'] or summoner['stats']['firstBloodAssist']:
-                dict['firstBlood'] = True
-            list.append(dict)
+            summoner['stats']['icon'] = 'times-circle'
+            summoner['stats']['color'] = '#e74c3c'
+            list.append(summoner['stats'])
     print ('got streak info')
     return list
