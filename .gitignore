@@ -2,3 +2,5 @@ venv
 *.pyc
 /flask
 /tmp
+example_game.mov
+example_summoner.mov

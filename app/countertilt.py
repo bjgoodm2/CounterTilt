@@ -1,8 +1,6 @@
 from decimal import *
-from pprint import pprint
 import requests, riotwatcher, datetime, operator
-from flask import render_template
-from riotwatcher import platforms, LoLException, RiotWatcher
+from api_wrapper import platforms, LoLException, RiotWatcher
 
 API_KEY = 'b5dc6253-ade4-471b-afde-c452a7990125'
 CURR_SEASON = 'SEASON2016'
